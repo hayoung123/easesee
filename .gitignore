@@ -1,0 +1,17 @@
+# Build artifacts
+/bin/
+/devs
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Logs
+*.log
+
+# Go
+*.test
+*.out
+coverage.txt
