@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"ls /Users/proshy/Desktop/devs/skills/ 2>/dev/null && mkdir -p /Users/proshy/Desktop/devs/skills/devs-register\",\"description\":\"Check skills dir and create devs-register dir\"}",
-  "error": "Exit code 1",
-  "timestamp": "2026-05-22T13:49:59.728Z",
-  "retry_count": 1
-}
