@@ -3,7 +3,7 @@ package discovery
 import (
 	"testing"
 
-	"github.com/proshy/easesee/internal/registry"
+	"github.com/hayoung123/easesee/internal/registry"
 )
 
 func TestMatch_ByCwdAndCmdToken(t *testing.T) {

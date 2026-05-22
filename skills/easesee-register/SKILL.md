@@ -15,7 +15,7 @@ Before running, verify:
 which devs
 ```
 
-If missing, direct the user to [INSTALL.md](https://github.com/proshy/easesee/blob/main/INSTALL.md).
+If missing, direct the user to [INSTALL.md](https://github.com/hayoung123/easesee/blob/main/INSTALL.md).
 
 ## Flow
 

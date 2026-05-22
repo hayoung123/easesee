@@ -27,7 +27,7 @@ Expected: three paths printed.
 ## 2. Clone
 
 ```bash
-git clone https://github.com/proshy/easesee.git ~/.local/share/easesee
+git clone https://github.com/hayoung123/easesee.git ~/.local/share/easesee
 cd ~/.local/share/easesee
 ```
 

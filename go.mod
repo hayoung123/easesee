@@ -1,4 +1,4 @@
-module github.com/proshy/easesee
+module github.com/hayoung123/easesee
 
 go 1.26.3
 
