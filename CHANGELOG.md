@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-05-23
+
+### Fixed
+
+- Sibling projects in a monorepo no longer light up together. Previously the matcher used `strings.Contains` for command-token matching, so the token `order` from a registered `ordersheet` project would falsely match the live cmdline `pnpm order-history dev` and flip the `ordersheet` row to `ON` while sharing the same port. The matcher now requires **whole-token** matches and gates the fallback so projects whose distinctive token didn't match don't fall through to generic words like `pnpm`.
+
 ## [0.1.1] — 2026-05-22
 
 ### Fixed
@@ -32,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Distribution: GitHub Releases + npm (`easesee` package with download wrapper)
 - GitHub Actions CI on macOS + Ubuntu
 
-[Unreleased]: https://github.com/hayoung123/easesee/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/hayoung123/easesee/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/hayoung123/easesee/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/hayoung123/easesee/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/hayoung123/easesee/releases/tag/v0.1.0

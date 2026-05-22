@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/hayoung123/easesee/internal/registry"
@@ -33,26 +34,71 @@ func Match(projects []registry.Project, listeners []Listener, procFn func(pid in
 	return out
 }
 
-// cmdTokenOverlap returns true if the registered cmd's distinctive tokens appear in the live cmdline.
-// "Distinctive" = tokens of length >= 3 that aren't trivial words.
+// cmdTokenOverlap returns true if any distinctive whole token of the registered
+// cmd appears as a whole token in the live cmdline.
+//
+// "Whole token" matters: previously a substring match would let the registered
+// token "order" match the live token "order-history" — making the dashboard
+// light up unrelated rows that share a cwd in a monorepo.
+//
+// "Distinctive" tokens exclude very short or generic words (pnpm, dev, …).
+// If the registered cmd has no distinctive tokens (e.g. just `pnpm dev`), the
+// fallback compares all non-empty tokens — but still as whole-token matches.
 func cmdTokenOverlap(registered, live string) bool {
-	tokens := strings.Fields(registered)
-	for _, t := range tokens {
-		if len(t) < 3 {
+	liveSet := tokenize(live)
+	regTokens := strings.Fields(registered)
+
+	var hasDistinctive bool
+	for _, t := range regTokens {
+		if isTrivialToken(t) {
 			continue
 		}
-		if t == "run" || t == "dev" || t == "start" || t == "pnpm" || t == "npm" || t == "yarn" {
-			continue
-		}
-		if strings.Contains(live, t) {
+		hasDistinctive = true
+		if liveSet[t] {
 			return true
 		}
 	}
-	// fallback: if no distinctive token, accept first non-trivial token match
-	for _, t := range tokens {
-		if strings.Contains(live, t) {
+	if hasDistinctive {
+		// Registered cmd had distinctive tokens but none matched: definitive no.
+		// Don't fall through to trivial-token matches, or sibling projects in a
+		// monorepo with the same cwd will all light up on any shared word.
+		return false
+	}
+	// Registered cmd was only trivial tokens (e.g. `pnpm dev`).
+	// Fall back to any whole-token match.
+	for _, t := range regTokens {
+		if liveSet[t] {
 			return true
 		}
+	}
+	return false
+}
+
+// tokenize splits a command line into whole-word tokens, also adding the
+// basename of any path-shaped token (so `/usr/bin/pnpm` matches `pnpm`).
+func tokenize(cmdline string) map[string]bool {
+	out := map[string]bool{}
+	for _, w := range strings.Fields(cmdline) {
+		if w == "" {
+			continue
+		}
+		out[w] = true
+		if base := filepath.Base(w); base != w {
+			out[base] = true
+		}
+	}
+	return out
+}
+
+func isTrivialToken(t string) bool {
+	if len(t) < 3 {
+		return true
+	}
+	switch t {
+	case "run", "dev", "start", "serve", "exec",
+		"pnpm", "npm", "yarn", "node", "bun", "deno",
+		"--filter":
+		return true
 	}
 	return false
 }
