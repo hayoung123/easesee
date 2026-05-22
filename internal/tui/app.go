@@ -78,10 +78,15 @@ func (m *model) refresh() {
 	} else {
 		m.matches = discovery.Match(m.reg.Projects, listeners, discovery.GetProcInfo)
 	}
-	// Bridge the discovery gap right after `s`: a freshly-spawned dev server
-	// hasn't bound to its port yet, so lsof can't see it. If our state
-	// store has a live PID for the project, show it as ON with Port=0 so
-	// the user sees immediate feedback rather than a stuck OFF row.
+	// For dashboard-spawned servers, bridge two gaps the name-based matcher
+	// can't close on its own:
+	//   - Right after `s` the listener isn't bound yet, so lsof can't see it.
+	//   - Even once bound, pnpm/yarn launch the actual listener (vite, etc.)
+	//     as a child whose cmdline ("node …/vite") doesn't contain the
+	//     project name, so cwd+cmd matching fails.
+	// Both cases are covered by attributing any listener whose PGID equals
+	// the PID we recorded in state.Managed — setsid gives the whole spawned
+	// tree a shared PGID.
 	if m.st != nil {
 		for name, mg := range m.st.Managed {
 			if _, ok := m.matches[name]; ok {
@@ -92,7 +97,15 @@ func (m *model) refresh() {
 				_ = m.st.Save(m.paths.StateFile)
 				continue
 			}
-			m.matches[name] = discovery.MatchResult{PID: mg.PID, Port: 0}
+			var port int
+			for _, l := range listeners {
+				if discovery.GetPgid(l.PID) == mg.PID {
+					if port == 0 || l.Port < port {
+						port = l.Port
+					}
+				}
+			}
+			m.matches[name] = discovery.MatchResult{PID: mg.PID, Port: port}
 		}
 	}
 	var rows []table.Row
