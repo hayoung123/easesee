@@ -1,0 +1,53 @@
+package tui
+
+import (
+	"fmt"
+
+	"github.com/charmbracelet/bubbles/table"
+	"github.com/charmbracelet/lipgloss"
+
+	"github.com/proshy/devs/internal/discovery"
+	"github.com/proshy/devs/internal/git"
+	"github.com/proshy/devs/internal/registry"
+)
+
+func newTable() table.Model {
+	cols := []table.Column{
+		{Title: "NAME", Width: 18},
+		{Title: "STATE", Width: 6},
+		{Title: "PORT", Width: 6},
+		{Title: "BRANCH", Width: 16},
+		{Title: "CMD", Width: 40},
+	}
+	t := table.New(
+		table.WithColumns(cols),
+		table.WithHeight(15),
+		table.WithFocused(true),
+	)
+	s := table.DefaultStyles()
+	s.Header = s.Header.Bold(true).Foreground(lipgloss.Color("#3b82f6"))
+	s.Selected = s.Selected.Foreground(lipgloss.Color("#fff")).Background(lipgloss.Color("#1e3a8a"))
+	t.SetStyles(s)
+	return t
+}
+
+// rowFor builds a table row for a project, given a match (empty MatchResult means OFF).
+func rowFor(p registry.Project, m discovery.MatchResult) table.Row {
+	state := stateOff.String()
+	port := "—"
+	if m.PID != 0 {
+		state = stateOn.String()
+		port = fmt.Sprintf("%d", m.Port)
+	}
+	branch := git.Branch(p.Cwd)
+	if branch == "" {
+		branch = "—"
+	} else if git.IsDirty(p.Cwd) {
+		branch += dirty.String()
+	}
+	cmd := p.Cmd
+	if len(cmd) > 40 {
+		cmd = cmd[:37] + "…"
+	}
+	return table.Row{p.Name, state, port, branch, cmd}
+}
