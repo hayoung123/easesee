@@ -33,17 +33,21 @@ func newTable() table.Model {
 
 // rowFor builds a table row for a project, given a match (empty MatchResult means OFF).
 func rowFor(p registry.Project, m discovery.MatchResult) table.Row {
-	state := stateOff.String()
+	state := stateOff
 	port := "—"
 	if m.PID != 0 {
-		state = stateOn.String()
-		port = fmt.Sprintf("%d", m.Port)
+		state = stateOn
+		if m.Port > 0 {
+			port = fmt.Sprintf("%d", m.Port)
+		} else {
+			port = "…" // dashboard-spawned, port not yet bound
+		}
 	}
 	branch := git.Branch(p.Cwd)
 	if branch == "" {
 		branch = "—"
 	} else if git.IsDirty(p.Cwd) {
-		branch += dirty.String()
+		branch += dirty
 	}
 	cmd := p.Cmd
 	if len(cmd) > 40 {

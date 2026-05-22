@@ -2,10 +2,17 @@ package tui
 
 import "github.com/charmbracelet/lipgloss"
 
+// Cell content uses plain strings instead of lipgloss SetString styles because
+// the bubbles/table component truncates cells without stripping the embedded
+// ANSI escape sequences first — that mangles multibyte runes and the cell
+// renders as the replacement character (�).
+const (
+	stateOn  = "● ON"
+	stateOff = "○ OFF"
+	dirty    = "★"
+)
+
 var (
-	stateOn  = lipgloss.NewStyle().Foreground(lipgloss.Color("#10b981")).SetString("● ON ")
-	stateOff = lipgloss.NewStyle().Foreground(lipgloss.Color("#6b7280")).SetString("○ OFF")
-	dirty    = lipgloss.NewStyle().Foreground(lipgloss.Color("#f59e0b")).SetString("★")
-	header   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#3b82f6"))
-	help     = lipgloss.NewStyle().Foreground(lipgloss.Color("#6b7280"))
+	header = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#3b82f6"))
+	help   = lipgloss.NewStyle().Foreground(lipgloss.Color("#6b7280"))
 )

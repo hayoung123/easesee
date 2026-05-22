@@ -78,6 +78,23 @@ func (m *model) refresh() {
 	} else {
 		m.matches = discovery.Match(m.reg.Projects, listeners, discovery.GetProcInfo)
 	}
+	// Bridge the discovery gap right after `s`: a freshly-spawned dev server
+	// hasn't bound to its port yet, so lsof can't see it. If our state
+	// store has a live PID for the project, show it as ON with Port=0 so
+	// the user sees immediate feedback rather than a stuck OFF row.
+	if m.st != nil {
+		for name, mg := range m.st.Managed {
+			if _, ok := m.matches[name]; ok {
+				continue
+			}
+			if !process.IsAlive(mg.PID) {
+				delete(m.st.Managed, name)
+				_ = m.st.Save(m.paths.StateFile)
+				continue
+			}
+			m.matches[name] = discovery.MatchResult{PID: mg.PID, Port: 0}
+		}
+	}
 	var rows []table.Row
 	for _, p := range m.reg.Projects {
 		rows = append(rows, rowFor(p, m.matches[p.Name]))
@@ -274,7 +291,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *model) View() string {
 	var b strings.Builder
-	b.WriteString(header.Render(" devs "))
+	b.WriteString(header.Render(" easesee "))
 	b.WriteString("\n\n")
 	if m.form.visible {
 		b.WriteString(m.form.View())
