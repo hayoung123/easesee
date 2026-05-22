@@ -3,7 +3,7 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/proshy/devs/internal/tui"
+	"github.com/proshy/easesee/internal/tui"
 )
 
 var rootCmd = &cobra.Command{

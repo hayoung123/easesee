@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/proshy/devs/internal/config"
-	"github.com/proshy/devs/internal/registry"
+	"github.com/proshy/easesee/internal/config"
+	"github.com/proshy/easesee/internal/registry"
 )
 
 var lsCmd = &cobra.Command{

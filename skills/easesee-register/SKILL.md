@@ -1,11 +1,11 @@
 ---
-name: devs-register
-description: Register a project in the devs local-server dashboard. Trigger when the user mentions "devs 등록", "서버 등록", "dev server 등록", or similar requests to add a project to the local dev dashboard.
+name: easesee-register
+description: Register a project in the devs local-server dashboard. Trigger when the user mentions "easesee 등록", "서버 등록", "dev server 등록", or similar requests to add a project to the local dev dashboard.
 ---
 
 # devs-register
 
-Helps the user add a local project to the `devs` dashboard by detecting how its dev server is run and calling `devs register`.
+Helps the user add a local project to the `easesee` dashboard by detecting how its dev server is run and calling `easesee register`.
 
 ## Preconditions
 
@@ -15,7 +15,7 @@ Before running, verify:
 which devs
 ```
 
-If missing, direct the user to [INSTALL.md](https://github.com/proshy/devs/blob/main/INSTALL.md).
+If missing, direct the user to [INSTALL.md](https://github.com/proshy/easesee/blob/main/INSTALL.md).
 
 ## Flow
 
@@ -53,19 +53,19 @@ If missing, direct the user to [INSTALL.md](https://github.com/proshy/devs/blob/
 
 4. **Suggest a name** — basename of the project root, or for monorepos the workspace name. Ask the user once if unsure.
 
-5. **Call `devs register`**:
+5. **Call `easesee register`**:
    ```bash
    devs register --name <NAME> --cwd "<ABSOLUTE_PATH>" --cmd "<DEV_COMMAND>"
    ```
    If duplicate name error, ask if user wants `--force` to replace.
 
-6. **Confirm with `devs ls`**:
+6. **Confirm with `easesee ls`**:
    ```bash
    devs ls
    ```
    Verify the new entry appears.
 
-7. **Tell the user**: "등록 완료. `devs` 실행해서 `s` 또는 `enter`로 시작."
+7. **Tell the user**: "등록 완료. `easesee` 실행해서 `s` 또는 `enter`로 시작."
 
 ## Examples
 
@@ -78,7 +78,7 @@ You:
 2. Notice `apps/order-history/` is a workspace with its own `dev` script.
 3. Ask: "어떤 걸 등록할까요? (1) order-history, (2) ordersheet, (3) membership"
 4. User picks 1.
-5. Run: `devs register --name order-history --cwd ~/Desktop/order-platform-client --cmd "pnpm order-history dev"`
+5. Run: `easesee register --name order-history --cwd ~/Desktop/order-platform-client --cmd "pnpm order-history dev"`
 
 ### Example 2: Single Python service
 
@@ -87,7 +87,7 @@ User in `~/projects/api`. `pyproject.toml` has no scripts, but `main.py` runs `u
 You:
 1. Read `main.py`, see `uvicorn.run(...)`.
 2. Suggest cmd: `uvicorn main:app --reload --port 8000`
-3. Run: `devs register --name api --cwd ~/projects/api --cmd "uvicorn main:app --reload --port 8000"`
+3. Run: `easesee register --name api --cwd ~/projects/api --cmd "uvicorn main:app --reload --port 8000"`
 
 ## Don't
 

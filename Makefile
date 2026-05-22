@@ -6,24 +6,24 @@ REPO_DIR := $(shell pwd)
 
 build:
 	@mkdir -p bin
-	go build -o bin/devs ./cmd/devs
+	go build -o bin/easesee ./cmd/easesee
 
 install: build
 	@mkdir -p $(BIN_DIR)
-	install -m 0755 bin/devs $(BIN_DIR)/devs
-	@echo "installed → $(BIN_DIR)/devs"
+	install -m 0755 bin/easesee $(BIN_DIR)/easesee
+	@echo "installed → $(BIN_DIR)/easesee"
 
 install-skills:
 	@mkdir -p $(SKILLS_DIR)
-	@for d in devs-register devs-help; do \
+	@for d in easesee-register easesee-help; do \
 		rm -rf $(SKILLS_DIR)/$$d; \
 		ln -s $(REPO_DIR)/skills/$$d $(SKILLS_DIR)/$$d; \
 		echo "linked → $(SKILLS_DIR)/$$d"; \
 	done
 
 uninstall:
-	rm -f $(BIN_DIR)/devs
-	rm -rf $(SKILLS_DIR)/devs-register $(SKILLS_DIR)/devs-help
+	rm -f $(BIN_DIR)/easesee
+	rm -rf $(SKILLS_DIR)/easesee-register $(SKILLS_DIR)/easesee-help
 	@echo "removed binary and skill links (state and registry preserved)"
 
 test:

@@ -3,7 +3,7 @@ package discovery
 import (
 	"strings"
 
-	"github.com/proshy/devs/internal/registry"
+	"github.com/proshy/easesee/internal/registry"
 )
 
 type MatchResult struct {

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/proshy/devs/internal/registry"
+	"github.com/proshy/easesee/internal/registry"
 )
 
 func TestStart_DetachedAndCaptures(t *testing.T) {
