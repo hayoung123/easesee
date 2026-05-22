@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-05-23
+
+### Fixed
+
+- Header now reads `easesee` (was `devs`, a leftover from the rename).
+- STATE/BRANCH columns no longer render as `�`. The lipgloss-wrapped `● ON` / `○ OFF` / `★` strings were being truncated by `bubbles/table` without ANSI-stripping first, mangling the UTF-8 multibyte sequences. Cell content is now plain unicode; the rest of the TUI keeps its styling.
+
+### Added
+
+- Rows for dashboard-spawned servers flip to `● ON` immediately and show `…` for PORT until the dev server actually binds. Previously the row stayed `OFF` for the few seconds between spawn and lsof catching the new listener. Dead PIDs left in the state store are now garbage-collected on each refresh.
+
 ## [0.1.2] — 2026-05-23
 
 ### Fixed
@@ -38,7 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Distribution: GitHub Releases + npm (`easesee` package with download wrapper)
 - GitHub Actions CI on macOS + Ubuntu
 
-[Unreleased]: https://github.com/hayoung123/easesee/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/hayoung123/easesee/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/hayoung123/easesee/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/hayoung123/easesee/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/hayoung123/easesee/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/hayoung123/easesee/releases/tag/v0.1.0
