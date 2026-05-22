@@ -49,25 +49,29 @@ func Start(p registry.Project, logPath string) (int, error) {
 	return cmd.Process.Pid, nil
 }
 
-// Stop sends SIGTERM to the process group. If still alive after timeout, sends SIGKILL.
+// Stop sends SIGTERM to the process, then SIGKILL after gracePeriod if still alive.
+// Signals both the process group (covers setsid-spawned trees we own) and the
+// direct PID (covers externally-started servers whose PGID differs from PID).
 func Stop(pid int, gracePeriod time.Duration) error {
-	if err := syscall.Kill(-pid, syscall.SIGTERM); err != nil {
-		if errors.Is(err, syscall.ESRCH) {
-			return nil
-		}
-		return err
-	}
+	signal(pid, syscall.SIGTERM)
 	deadline := time.Now().Add(gracePeriod)
 	for time.Now().Before(deadline) {
-		if syscall.Kill(pid, syscall.Signal(0)) != nil {
+		if !IsAlive(pid) {
 			return nil
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
-	if err := syscall.Kill(-pid, syscall.SIGKILL); err != nil && !errors.Is(err, syscall.ESRCH) {
-		return err
-	}
+	signal(pid, syscall.SIGKILL)
 	return nil
+}
+
+// signal sends sig to both the process group and the process itself,
+// ignoring ESRCH (already gone) errors.
+func signal(pid int, sig syscall.Signal) {
+	if pgid, err := syscall.Getpgid(pid); err == nil && pgid > 1 {
+		_ = syscall.Kill(-pgid, sig)
+	}
+	_ = syscall.Kill(pid, sig)
 }
 
 // IsAlive returns true if signal 0 succeeds.
