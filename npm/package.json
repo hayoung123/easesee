@@ -13,7 +13,7 @@
   "license": "MIT",
   "author": "hayoung123",
   "bin": {
-    "easesee": "./bin/easesee.js"
+    "easesee": "bin/easesee.js"
   },
   "files": [
     "bin/easesee.js",
