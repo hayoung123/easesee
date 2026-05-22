@@ -16,8 +16,8 @@ type Paths struct {
 
 func New() Paths {
 	home, _ := os.UserHomeDir()
-	configDir := filepath.Join(home, ".config", "devs")
-	stateDir := filepath.Join(home, ".local", "state", "devs")
+	configDir := filepath.Join(home, ".config", "easesee")
+	stateDir := filepath.Join(home, ".local", "state", "easesee")
 	return Paths{
 		ConfigDir:    configDir,
 		StateDir:     stateDir,

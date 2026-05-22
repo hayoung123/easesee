@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/proshy/devs/internal/cli"
+	"github.com/proshy/easesee/internal/cli"
 )
 
 func main() {

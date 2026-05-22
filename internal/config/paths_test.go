@@ -8,11 +8,11 @@ import (
 
 func TestPaths(t *testing.T) {
 	p := New()
-	if !strings.HasSuffix(p.ConfigDir, filepath.Join(".config", "devs")) {
-		t.Errorf("ConfigDir = %q, want suffix .config/devs", p.ConfigDir)
+	if !strings.HasSuffix(p.ConfigDir, filepath.Join(".config", "easesee")) {
+		t.Errorf("ConfigDir = %q, want suffix .config/easesee", p.ConfigDir)
 	}
-	if !strings.HasSuffix(p.StateDir, filepath.Join(".local", "state", "devs")) {
-		t.Errorf("StateDir = %q, want suffix .local/state/devs", p.StateDir)
+	if !strings.HasSuffix(p.StateDir, filepath.Join(".local", "state", "easesee")) {
+		t.Errorf("StateDir = %q, want suffix .local/state/easesee", p.StateDir)
 	}
 	if filepath.Base(p.RegistryFile) != "registry.yaml" {
 		t.Errorf("RegistryFile = %q, want registry.yaml", p.RegistryFile)

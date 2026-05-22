@@ -1,17 +1,17 @@
-# devs
+# easesee
 
 A terminal dashboard for managing locally registered dev servers — see what's running where, start/stop with one keystroke, and let agents do the registration for you.
 
 ## Why
 
-If you juggle multiple dev servers across cmux/tmux panes you lose track of which is running where. `devs` shows them all in one place, recognizes servers started in other panes, and survives its own restart so your work isn't tied to its uptime.
+If you juggle multiple dev servers across cmux/tmux panes you lose track of which is running where. `easesee` shows them all in one place, recognizes servers started in other panes, and survives its own restart so your work isn't tied to its uptime.
 
 ## Features
 
 - **One panel, all your dev servers** — see ports, branches, run state
 - **Survives restart** — dashboard exit doesn't kill your servers
 - **Detects external** — a server started in another pane shows up automatically (matched by cwd)
-- **Agent-friendly** — `/devs-register` skill lets your agent register projects from project context with one sentence
+- **Agent-friendly** — `/easesee-register` skill lets your agent register projects from project context with one sentence
 - **Single Go binary** — no daemon
 
 ## Quick start
@@ -19,8 +19,8 @@ If you juggle multiple dev servers across cmux/tmux panes you lose track of whic
 See [INSTALL.md](./INSTALL.md) for step-by-step installation (agent-friendly).
 
 ```bash
-make install        # → ~/.local/bin/devs
-make install-skills # → ~/.claude/skills/devs-{register,help}
+make install        # → ~/.local/bin/easesee
+make install-skills # → ~/.claude/skills/easesee-{register,help}
 
 # Register a project (manually or via the skill)
 devs register --name my-app --cwd ~/path/to/repo --cmd "pnpm dev"
@@ -47,14 +47,14 @@ devs
 
 ## Files
 
-- Registry: `~/.config/devs/registry.yaml`
-- Runtime state: `~/.local/state/devs/state.json`
-- Logs: `~/.local/state/devs/logs/<name>.log`
+- Registry: `~/.config/easesee/registry.yaml`
+- Runtime state: `~/.local/state/easesee/state.json`
+- Logs: `~/.local/state/easesee/logs/<name>.log`
 
 ## Skills
 
-- `~/.claude/skills/devs-register` — agent skill: "서버 등록해줘" → scans project, calls `devs register`
-- `~/.claude/skills/devs-help` — usage reference for agents
+- `~/.claude/skills/easesee-register` — agent skill: "서버 등록해줘" → scans project, calls `easesee register`
+- `~/.claude/skills/easesee-help` — usage reference for agents
 
 ## Design
 

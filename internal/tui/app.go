@@ -12,11 +12,11 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/proshy/devs/internal/config"
-	"github.com/proshy/devs/internal/discovery"
-	"github.com/proshy/devs/internal/process"
-	"github.com/proshy/devs/internal/registry"
-	"github.com/proshy/devs/internal/state"
+	"github.com/proshy/easesee/internal/config"
+	"github.com/proshy/easesee/internal/discovery"
+	"github.com/proshy/easesee/internal/process"
+	"github.com/proshy/easesee/internal/registry"
+	"github.com/proshy/easesee/internal/state"
 )
 
 type model struct {

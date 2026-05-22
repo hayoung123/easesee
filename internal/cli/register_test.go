@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/proshy/devs/internal/registry"
+	"github.com/proshy/easesee/internal/registry"
 )
 
 func TestRegister_Roundtrip(t *testing.T) {

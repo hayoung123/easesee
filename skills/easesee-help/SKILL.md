@@ -1,11 +1,11 @@
 ---
-name: devs-help
-description: Reference for using the `devs` local-server dashboard. Trigger when the user asks how to use devs, how to start/stop/view a registered dev server via devs, or anything about the devs dashboard.
+name: easesee-help
+description: Reference for using the `easesee` local-server dashboard. Trigger when the user asks how to use devs, how to start/stop/view a registered dev server via devs, or anything about the devs dashboard.
 ---
 
 # devs-help
 
-Quick reference for the `devs` TUI dashboard.
+Quick reference for the `easesee` TUI dashboard.
 
 ## Launching
 
@@ -13,7 +13,7 @@ Quick reference for the `devs` TUI dashboard.
 devs
 ```
 
-Launches the TUI. If no projects are registered yet, the table is empty — use the `/devs-register` skill or `devs register --help` to add one.
+Launches the TUI. If no projects are registered yet, the table is empty — use the `/easesee-register` skill or `easesee register --help` to add one.
 
 ## Inside the TUI
 
@@ -35,9 +35,9 @@ Launches the TUI. If no projects are registered yet, the table is empty — use 
 
 | Path | Purpose |
 |------|---------|
-| `~/.config/devs/registry.yaml` | Registered projects. Edit manually or via TUI/skill. |
-| `~/.local/state/devs/state.json` | Tracks PIDs the dashboard started. Don't edit. |
-| `~/.local/state/devs/logs/<name>.log` | Captured stdout for dashboard-spawned servers. |
+| `~/.config/easesee/registry.yaml` | Registered projects. Edit manually or via TUI/skill. |
+| `~/.local/state/easesee/state.json` | Tracks PIDs the dashboard started. Don't edit. |
+| `~/.local/state/easesee/logs/<name>.log` | Captured stdout for dashboard-spawned servers. |
 
 ## Common scenarios
 
@@ -64,13 +64,13 @@ kill -9 -<pgid>
 ### "Dashboard says lock held"
 
 ```bash
-cat ~/.local/state/devs/lock         # see which PID is supposedly running
+cat ~/.local/state/easesee/lock         # see which PID is supposedly running
 ps -p <pid>                          # check if alive
-rm ~/.local/state/devs/lock          # remove if stale
+rm ~/.local/state/easesee/lock          # remove if stale
 ```
 
 ## Don't
 
-- Don't edit `state.json` while `devs` is running.
+- Don't edit `state.json` while `easesee` is running.
 - Don't kill the dashboard process with SIGKILL — `q` cleanly releases the lock; SIGKILL leaves it.
 - Don't register a project with cwd inside a node_modules folder — match will be fragile.

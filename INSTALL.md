@@ -1,4 +1,4 @@
-# Installing devs
+# Installing easesee
 
 This guide is written so an AI agent (Claude Code, etc.) can follow it step-by-step. Each step has a verification command — if it fails, fix that before continuing.
 
@@ -27,8 +27,8 @@ Expected: three paths printed.
 ## 2. Clone
 
 ```bash
-git clone https://github.com/proshy/devs.git ~/.local/share/devs
-cd ~/.local/share/devs
+git clone https://github.com/proshy/easesee.git ~/.local/share/easesee
+cd ~/.local/share/easesee
 ```
 
 ## 3. Build + Install
@@ -36,7 +36,7 @@ cd ~/.local/share/devs
 ```bash
 make install
 ```
-Expected: `installed → /Users/<you>/.local/bin/devs`
+Expected: `installed → /Users/<you>/.local/bin/easesee`
 
 Verify:
 ```bash
@@ -73,7 +73,7 @@ devs register --name your-project --cwd "$PWD" --cmd "pnpm dev"
 Or, with the skill installed, just tell your agent:
 > 서버 등록해줘
 
-The agent will read `package.json` (or pyproject/build.gradle/etc), pick the right dev script, and call `devs register` for you.
+The agent will read `package.json` (or pyproject/build.gradle/etc), pick the right dev script, and call `easesee register` for you.
 
 ## 6. Launch
 
@@ -85,10 +85,10 @@ Expected: TUI shows your registered project as `○ OFF`. Press `s` to start it.
 ## Uninstall
 
 ```bash
-cd ~/.local/share/devs
+cd ~/.local/share/easesee
 make uninstall
 ```
 Registry and state files are preserved; remove them manually if desired:
 ```bash
-rm -rf ~/.config/devs ~/.local/state/devs
+rm -rf ~/.config/easesee ~/.local/state/easesee
 ```

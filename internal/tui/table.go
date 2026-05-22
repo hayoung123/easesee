@@ -6,9 +6,9 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/proshy/devs/internal/discovery"
-	"github.com/proshy/devs/internal/git"
-	"github.com/proshy/devs/internal/registry"
+	"github.com/proshy/easesee/internal/discovery"
+	"github.com/proshy/easesee/internal/git"
+	"github.com/proshy/easesee/internal/registry"
 )
 
 func newTable() table.Model {
