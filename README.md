@@ -1,5 +1,9 @@
 # easesee
 
+[![npm version](https://img.shields.io/npm/v/easesee.svg)](https://www.npmjs.com/package/easesee)
+[![release](https://img.shields.io/github/v/release/hayoung123/easesee)](https://github.com/hayoung123/easesee/releases)
+[![license](https://img.shields.io/github/license/hayoung123/easesee)](./LICENSE)
+
 A terminal dashboard for managing locally registered dev servers — see what's running where, start/stop with one keystroke, and let agents do the registration for you.
 
 ## Why
@@ -11,22 +15,62 @@ If you juggle multiple dev servers across cmux/tmux panes you lose track of whic
 - **One panel, all your dev servers** — see ports, branches, run state
 - **Survives restart** — dashboard exit doesn't kill your servers
 - **Detects external** — a server started in another pane shows up automatically (matched by cwd)
-- **Agent-friendly** — `/easesee-register` skill lets your agent register projects from project context with one sentence
-- **Single Go binary** — no daemon
+- **Agent-friendly** — the `easesee-register` skill lets an agent register projects from project context with one sentence
+- **Single Go binary** — no daemon, no runtime dependency at install time
+
+## Install
+
+Pick one. All paths land at the same place: a single `easesee` binary on your `PATH`.
+
+### npm (recommended)
+
+```bash
+npm install -g easesee
+# or
+pnpm add -g easesee
+```
+
+A small wrapper downloads the right native binary for your platform from the matching [GitHub release](https://github.com/hayoung123/easesee/releases) on first run.
+
+### Go
+
+```bash
+go install github.com/hayoung123/easesee/cmd/easesee@latest
+```
+
+Requires Go 1.22+. Binary lands at `$(go env GOBIN)/easesee` (usually `~/go/bin/easesee`).
+
+### From source
+
+```bash
+git clone https://github.com/hayoung123/easesee.git ~/.local/share/easesee
+cd ~/.local/share/easesee
+make install         # → ~/.local/bin/easesee
+make install-skills  # → ~/.claude/skills/easesee-{register,help}
+```
+
+This is also the path used by the [agent-friendly INSTALL guide](./INSTALL.md), which an AI agent can follow step by step.
+
+### Verify
+
+```bash
+easesee --version
+easesee --help
+```
 
 ## Quick start
 
-See [INSTALL.md](./INSTALL.md) for step-by-step installation (agent-friendly).
-
 ```bash
-make install        # → ~/.local/bin/easesee
-make install-skills # → ~/.claude/skills/easesee-{register,help}
+# Register a project — manually
+easesee register --name order-history \
+  --cwd ~/Desktop/order-platform-client \
+  --cmd "pnpm order-history dev"
 
-# Register a project (manually or via the skill)
-devs register --name my-app --cwd ~/path/to/repo --cmd "pnpm dev"
+# Or, with the skill installed, just ask your agent:
+#   "서버 등록해줘"
 
 # Launch the dashboard
-devs
+easesee
 ```
 
 ## Keys
@@ -40,26 +84,44 @@ devs
 | r | Restart |
 | l | Toggle log pane |
 | a | Add project (inline form) |
-| e | Edit `registry.yaml` in $EDITOR |
+| e | Edit `registry.yaml` in `$EDITOR` |
 | R | Manual refresh |
 | q | Quit (servers keep running) |
 | Q | Quit + kill all dashboard-spawned |
 
 ## Files
 
-- Registry: `~/.config/easesee/registry.yaml`
-- Runtime state: `~/.local/state/easesee/state.json`
-- Logs: `~/.local/state/easesee/logs/<name>.log`
+| Path | Purpose |
+|------|---------|
+| `~/.config/easesee/registry.yaml` | Registered projects |
+| `~/.local/state/easesee/state.json` | Dashboard-managed PIDs |
+| `~/.local/state/easesee/logs/<name>.log` | Captured stdout/stderr |
+| `~/.local/state/easesee/lock` | Single-instance lock |
 
-## Skills
+## Skills (Claude Code)
 
-- `~/.claude/skills/easesee-register` — agent skill: "서버 등록해줘" → scans project, calls `easesee register`
-- `~/.claude/skills/easesee-help` — usage reference for agents
+- `easesee-register` — "서버 등록해줘" / "register this dev server" → scans the project (`package.json`, `pyproject.toml`, `build.gradle`, `go.mod`, `Procfile`…) and calls `easesee register` with the right cwd + cmd.
+- `easesee-help` — reference for the TUI itself.
 
-## Design
+Install via `make install-skills` after cloning the repo. They live as symlinks under `~/.claude/skills/`.
 
-See [docs/superpowers/specs/2026-05-22-devs-design.md](./docs/superpowers/specs/2026-05-22-devs-design.md).
+## Supported platforms
+
+- macOS (Apple Silicon + Intel)
+- Linux (x86_64 + arm64)
+
+Windows is not supported — uses Unix process groups (`setsid`) for survival semantics.
+
+## Documentation
+
+- [Design spec](./docs/superpowers/specs/2026-05-22-devs-design.md)
+- [Implementation plan (26 tasks)](./docs/superpowers/plans/2026-05-22-devs-implementation.md)
+- [CHANGELOG](./CHANGELOG.md)
+
+## Releasing
+
+See [RELEASING.md](./RELEASING.md) for the version bump → build → tag → npm publish flow.
 
 ## License
 
-MIT (or your choice).
+MIT — see [LICENSE](./LICENSE).
