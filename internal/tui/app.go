@@ -27,6 +27,7 @@ type model struct {
 	release func() error
 	err     error
 	status  string
+	log     logPane
 }
 
 func New() *model {
@@ -50,6 +51,7 @@ func New() *model {
 	m.st = s
 	m.reloadRegistry()
 	m.refresh()
+	m.log = newLog()
 	return m
 }
 
@@ -199,6 +201,22 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Restart):
 			m.restartSelected()
 			return m, nil
+		case key.Matches(msg, m.keys.Log):
+			m.log.visible = !m.log.visible
+			if m.log.visible {
+				if p := m.selectedProject(); p != nil {
+					if m.st != nil {
+						if mg, ok := m.st.Managed[p.Name]; ok {
+							m.log.load(mg.LogPath)
+						} else {
+							m.log.load("")
+						}
+					} else {
+						m.log.load("")
+					}
+				}
+			}
+			return m, nil
 		case key.Matches(msg, m.keys.Refresh):
 			m.refresh()
 			return m, nil
@@ -218,6 +236,13 @@ func (m *model) View() string {
 	b.WriteString("\n\n")
 	b.WriteString(m.tbl.View())
 	b.WriteString("\n")
+	if m.log.visible {
+		b.WriteString("\n")
+		b.WriteString(header.Render(" log "))
+		b.WriteString("\n")
+		b.WriteString(m.log.vp.View())
+		b.WriteString("\n")
+	}
 	if m.status != "" {
 		b.WriteString(help.Render(m.status))
 		b.WriteString("\n")
