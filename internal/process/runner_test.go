@@ -2,6 +2,7 @@ package process
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"syscall"
 	"testing"
@@ -54,6 +55,31 @@ func TestStop_GracefulThenForce(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	if err := syscall.Kill(pid, syscall.Signal(0)); err == nil {
 		t.Errorf("pid %d still alive", pid)
+	}
+}
+
+// TestStop_NonSetsidChild verifies Stop kills a process that was NOT spawned via
+// our Start() (i.e. not setsid'd, simulating an externally-started server). We
+// place the child in its own pgid via Setpgid so the test runner itself is
+// never targeted by the group signal.
+func TestStop_NonSetsidChild(t *testing.T) {
+	cmd := exec.Command("/bin/sh", "-c", "sleep 30")
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	if err := cmd.Start(); err != nil {
+		t.Fatalf("spawn: %v", err)
+	}
+	pid := cmd.Process.Pid
+	// Reap on its own; cleanup is best-effort.
+	go func() { _ = cmd.Wait() }()
+	t.Cleanup(func() { _ = syscall.Kill(pid, syscall.SIGKILL) })
+
+	if err := Stop(pid, 500*time.Millisecond); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	// Give the reaper goroutine a moment to clear the zombie.
+	time.Sleep(200 * time.Millisecond)
+	if IsAlive(pid) {
+		t.Errorf("pid %d still alive after Stop", pid)
 	}
 }
 
