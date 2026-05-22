@@ -1,0 +1,41 @@
+{
+  "name": "easesee",
+  "version": "0.1.0",
+  "description": "A terminal dashboard for managing locally registered dev servers",
+  "homepage": "https://github.com/hayoung123/easesee",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hayoung123/easesee.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hayoung123/easesee/issues"
+  },
+  "license": "MIT",
+  "author": "hayoung123",
+  "bin": {
+    "easesee": "./bin/easesee.js"
+  },
+  "files": [
+    "bin/easesee.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
+  "keywords": [
+    "tui",
+    "cli",
+    "dev-server",
+    "dashboard",
+    "process-manager",
+    "bubbletea"
+  ],
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}
