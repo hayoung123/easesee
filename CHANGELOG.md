@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] — 2026-05-23
+
+### Fixed
+
+- PORT column now resolves for dashboard-spawned servers running under `pnpm`/`yarn`. Those tools launch the actual listener (e.g. `vite`) as a child whose cmdline is just `node …/vite` — no project name — so the cwd+cmd matcher couldn't connect it back to the registered project. The TUI now attributes listeners to the project by **process group**: every descendant of a `setsid`-spawned process shares the parent's PGID, so any listener whose PGID equals the recorded `state.Managed.PID` is recognised as that project's port.
+
 ## [0.1.3] — 2026-05-23
 
 ### Fixed
@@ -49,7 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Distribution: GitHub Releases + npm (`easesee` package with download wrapper)
 - GitHub Actions CI on macOS + Ubuntu
 
-[Unreleased]: https://github.com/hayoung123/easesee/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/hayoung123/easesee/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/hayoung123/easesee/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/hayoung123/easesee/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/hayoung123/easesee/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/hayoung123/easesee/compare/v0.1.0...v0.1.1
