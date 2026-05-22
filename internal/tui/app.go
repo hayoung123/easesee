@@ -28,6 +28,7 @@ type model struct {
 	err     error
 	status  string
 	log     logPane
+	form    addForm
 }
 
 func New() *model {
@@ -52,6 +53,7 @@ func New() *model {
 	m.reloadRegistry()
 	m.refresh()
 	m.log = newLog()
+	m.form = newAddForm()
 	return m
 }
 
@@ -180,6 +182,32 @@ func tickCmd() tea.Cmd {
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// If form is visible, route keys to form first.
+	if m.form.visible {
+		if k, ok := msg.(tea.KeyMsg); ok {
+			switch k.String() {
+			case "esc":
+				m.form.reset()
+				return m, nil
+			case "tab":
+				m.form.next()
+				return m, nil
+			case "enter":
+				name, cwd, cmd := m.form.values()
+				if err := registerInline(m.paths.RegistryFile, name, cwd, cmd); err != nil {
+					m.status = "add failed: " + err.Error()
+				} else {
+					m.status = "added " + name
+					m.form.reset()
+					m.reloadRegistry()
+					m.refresh()
+				}
+				return m, nil
+			}
+		}
+		cmd := m.form.Update(msg)
+		return m, cmd
+	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -220,6 +248,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Refresh):
 			m.refresh()
 			return m, nil
+		case key.Matches(msg, m.keys.Add):
+			m.form.visible = true
+			return m, nil
 		}
 	case tickMsg:
 		m.refresh()
@@ -234,6 +265,10 @@ func (m *model) View() string {
 	var b strings.Builder
 	b.WriteString(header.Render(" devs "))
 	b.WriteString("\n\n")
+	if m.form.visible {
+		b.WriteString(m.form.View())
+		b.WriteString("\n\n")
+	}
 	b.WriteString(m.tbl.View())
 	b.WriteString("\n")
 	if m.log.visible {
@@ -259,4 +294,15 @@ func Run() error {
 	p := tea.NewProgram(New(), tea.WithAltScreen())
 	_, err := p.Run()
 	return err
+}
+
+func registerInline(regPath, name, cwd, cmd string) error {
+	r, err := registry.Load(regPath)
+	if err != nil {
+		return err
+	}
+	if err := r.Add(registry.Project{Name: name, Cwd: cwd, Cmd: cmd}); err != nil {
+		return err
+	}
+	return r.Save(regPath)
 }
