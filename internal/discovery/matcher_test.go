@@ -47,3 +47,35 @@ func TestMatch_NoMatchWhenCwdDifferent(t *testing.T) {
 		t.Errorf("expected no match")
 	}
 }
+
+// Regression: in a pnpm monorepo, registering both `order-history` (cmd:
+// `pnpm order-history dev`) and `ordersheet` (cmd: `pnpm order dev`) under
+// the same root cwd used to light up BOTH rows when only order-history was
+// actually running, because the substring "order" appears inside
+// "order-history" in the live cmdline.
+func TestMatch_SiblingTokensDoNotFalsePositive(t *testing.T) {
+	root := "/home/u/order-platform-client"
+	projects := []registry.Project{
+		{Name: "order-history", Cwd: root, Cmd: "pnpm order-history dev"},
+		{Name: "ordersheet", Cwd: root, Cmd: "pnpm order dev"},
+		{Name: "membership", Cwd: root, Cmd: "pnpm membership dev"},
+	}
+	listeners := []Listener{{PID: 42, Cmd: "node", Port: 5173}}
+	proc := func(pid int) ProcInfo {
+		return ProcInfo{
+			PID:     42,
+			Cwd:     root + "/apps/order-history",
+			Cmdline: "node /usr/bin/pnpm order-history dev",
+		}
+	}
+	matches := Match(projects, listeners, proc)
+	if m, ok := matches["order-history"]; !ok || m.Port != 5173 {
+		t.Errorf("order-history should match: %+v", matches)
+	}
+	if _, ok := matches["ordersheet"]; ok {
+		t.Errorf("ordersheet should NOT match (token 'order' must not substring-match 'order-history'): %+v", matches)
+	}
+	if _, ok := matches["membership"]; ok {
+		t.Errorf("membership should NOT match: %+v", matches)
+	}
+}
