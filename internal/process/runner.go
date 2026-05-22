@@ -48,3 +48,29 @@ func Start(p registry.Project, logPath string) (int, error) {
 	go func() { _ = cmd.Wait() }()
 	return cmd.Process.Pid, nil
 }
+
+// Stop sends SIGTERM to the process group. If still alive after timeout, sends SIGKILL.
+func Stop(pid int, gracePeriod time.Duration) error {
+	if err := syscall.Kill(-pid, syscall.SIGTERM); err != nil {
+		if errors.Is(err, syscall.ESRCH) {
+			return nil
+		}
+		return err
+	}
+	deadline := time.Now().Add(gracePeriod)
+	for time.Now().Before(deadline) {
+		if syscall.Kill(pid, syscall.Signal(0)) != nil {
+			return nil
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	if err := syscall.Kill(-pid, syscall.SIGKILL); err != nil && !errors.Is(err, syscall.ESRCH) {
+		return err
+	}
+	return nil
+}
+
+// IsAlive returns true if signal 0 succeeds.
+func IsAlive(pid int) bool {
+	return syscall.Kill(pid, syscall.Signal(0)) == nil
+}
