@@ -18,3 +18,9 @@ coverage.txt
 
 # OMC plugin state
 .omc/
+
+# Cross-compiled binaries (uploaded to GitHub Releases)
+/dist/
+
+# npm package downloaded native cache
+/npm/native/
