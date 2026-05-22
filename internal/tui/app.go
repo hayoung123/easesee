@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -11,7 +12,9 @@ import (
 
 	"github.com/proshy/devs/internal/config"
 	"github.com/proshy/devs/internal/discovery"
+	"github.com/proshy/devs/internal/process"
 	"github.com/proshy/devs/internal/registry"
+	"github.com/proshy/devs/internal/state"
 )
 
 type model struct {
@@ -20,6 +23,8 @@ type model struct {
 	reg     *registry.Registry
 	tbl     table.Model
 	matches map[string]discovery.MatchResult
+	st      *state.State
+	release func() error
 	err     error
 	status  string
 }
@@ -31,6 +36,18 @@ func New() *model {
 		tbl:     newTable(),
 		matches: map[string]discovery.MatchResult{},
 	}
+	if err := m.paths.EnsureDirs(); err != nil {
+		m.err = err
+		return m
+	}
+	rel, err := state.AcquireLock(m.paths.LockFile)
+	if err != nil {
+		m.err = err
+		return m
+	}
+	m.release = rel
+	s, _ := state.Load(m.paths.StateFile)
+	m.st = s
 	m.reloadRegistry()
 	m.refresh()
 	return m
@@ -62,6 +79,96 @@ func (m *model) refresh() {
 	m.tbl.SetRows(rows)
 }
 
+func (m *model) selectedProject() *registry.Project {
+	if m.reg == nil {
+		return nil
+	}
+	i := m.tbl.Cursor()
+	if i < 0 || i >= len(m.reg.Projects) {
+		return nil
+	}
+	return &m.reg.Projects[i]
+}
+
+func (m *model) startSelected() {
+	p := m.selectedProject()
+	if p == nil {
+		return
+	}
+	if _, ok := m.matches[p.Name]; ok {
+		m.status = p.Name + " already running"
+		return
+	}
+	logPath := filepath.Join(m.paths.LogsDir, p.Name+".log")
+	pid, err := process.Start(*p, logPath)
+	if err != nil {
+		m.status = "start failed: " + err.Error()
+		return
+	}
+	if m.st == nil {
+		m.st = &state.State{Managed: map[string]state.Managed{}}
+	}
+	if m.st.Managed == nil {
+		m.st.Managed = map[string]state.Managed{}
+	}
+	m.st.Managed[p.Name] = state.Managed{PID: pid, StartedAt: time.Now(), LogPath: logPath}
+	_ = m.st.Save(m.paths.StateFile)
+	m.status = fmt.Sprintf("started %s (pid=%d)", p.Name, pid)
+	m.refresh()
+}
+
+func (m *model) stopSelected() {
+	p := m.selectedProject()
+	if p == nil {
+		return
+	}
+	match, ok := m.matches[p.Name]
+	if !ok {
+		m.status = p.Name + " is not running"
+		return
+	}
+	if err := process.Stop(match.PID, 3*time.Second); err != nil {
+		m.status = "stop failed: " + err.Error()
+		return
+	}
+	if m.st != nil {
+		delete(m.st.Managed, p.Name)
+		_ = m.st.Save(m.paths.StateFile)
+	}
+	m.status = "stopped " + p.Name
+	m.refresh()
+}
+
+func (m *model) restartSelected() {
+	m.stopSelected()
+	time.Sleep(200 * time.Millisecond)
+	m.startSelected()
+}
+
+func (m *model) toggleSelected() {
+	p := m.selectedProject()
+	if p == nil {
+		return
+	}
+	if _, on := m.matches[p.Name]; on {
+		m.stopSelected()
+	} else {
+		m.startSelected()
+	}
+}
+
+func (m *model) cleanup(killAll bool) {
+	if killAll && m.st != nil {
+		for _, mg := range m.st.Managed {
+			_ = process.Stop(mg.PID, 1*time.Second)
+		}
+	}
+	if m.release != nil {
+		_ = m.release()
+		m.release = nil
+	}
+}
+
 func (m *model) Init() tea.Cmd { return tea.Batch(tickCmd()) }
 
 type tickMsg struct{}
@@ -74,10 +181,27 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.Quit), key.Matches(msg, m.keys.QuitAll):
+		case key.Matches(msg, m.keys.QuitAll):
+			m.cleanup(true)
 			return m, tea.Quit
+		case key.Matches(msg, m.keys.Quit):
+			m.cleanup(false)
+			return m, tea.Quit
+		case key.Matches(msg, m.keys.Toggle):
+			m.toggleSelected()
+			return m, nil
+		case key.Matches(msg, m.keys.Start):
+			m.startSelected()
+			return m, nil
+		case key.Matches(msg, m.keys.Stop):
+			m.stopSelected()
+			return m, nil
+		case key.Matches(msg, m.keys.Restart):
+			m.restartSelected()
+			return m, nil
 		case key.Matches(msg, m.keys.Refresh):
 			m.refresh()
+			return m, nil
 		}
 	case tickMsg:
 		m.refresh()
@@ -98,7 +222,7 @@ func (m *model) View() string {
 		b.WriteString(help.Render(m.status))
 		b.WriteString("\n")
 	}
-	b.WriteString(help.Render(" enter:toggle  s:start  x:stop  r:restart  l:log  a:add  e:edit  R:refresh  q:quit "))
+	b.WriteString(help.Render(" enter:toggle  s:start  x:stop  r:restart  l:log  a:add  e:edit  R:refresh  q:quit  Q:quit+kill "))
 	if m.err != nil {
 		b.WriteString("\n")
 		b.WriteString(fmt.Sprintf("ERROR: %v", m.err))
