@@ -2,6 +2,8 @@ package tui
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -251,10 +253,19 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Add):
 			m.form.visible = true
 			return m, nil
+		case key.Matches(msg, m.keys.Edit):
+			return m, openEditor(m.paths.RegistryFile)
 		}
 	case tickMsg:
 		m.refresh()
 		return m, tickCmd()
+	case reloadMsg:
+		if msg.err != nil {
+			m.status = "editor error: " + msg.err.Error()
+		}
+		m.reloadRegistry()
+		m.refresh()
+		return m, nil
 	}
 	var cmd tea.Cmd
 	m.tbl, cmd = m.tbl.Update(msg)
@@ -305,4 +316,17 @@ func registerInline(regPath, name, cwd, cmd string) error {
 		return err
 	}
 	return r.Save(regPath)
+}
+
+type reloadMsg struct{ err error }
+
+func openEditor(path string) tea.Cmd {
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "vi"
+	}
+	c := exec.Command(editor, path)
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		return reloadMsg{err: err}
+	})
 }
