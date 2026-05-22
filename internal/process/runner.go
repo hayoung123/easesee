@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/proshy/easesee/internal/registry"
+	"github.com/hayoung123/easesee/internal/registry"
 )
 
 // Start launches the project's cmd in cwd, detached from the parent process.
