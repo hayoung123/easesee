@@ -47,5 +47,8 @@ release-binaries:
 		GOOS=$$os GOARCH=$$arch go build -ldflags="$(LDFLAGS)" -o dist/easesee-$$os-$$arch ./cmd/easesee; \
 	done
 
+publish:
+	cd npm && npm publish --access public
+
 clean:
 	rm -rf bin dist
