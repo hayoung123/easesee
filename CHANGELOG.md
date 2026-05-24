@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] — 2026-05-24
+
+### Fixed
+
+- `easesee-register` skill now uses `easesee` instead of `devs` in precondition check and register/ls command examples.
+
 ## [0.1.4] — 2026-05-23
 
 ### Fixed
