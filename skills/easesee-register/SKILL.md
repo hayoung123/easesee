@@ -12,7 +12,7 @@ Helps the user add a local project to the `easesee` dashboard by detecting how i
 Before running, verify:
 
 ```bash
-which devs
+which easesee
 ```
 
 If missing, direct the user to [INSTALL.md](https://github.com/hayoung123/easesee/blob/main/INSTALL.md).
@@ -55,13 +55,13 @@ If missing, direct the user to [INSTALL.md](https://github.com/hayoung123/easese
 
 5. **Call `easesee register`**:
    ```bash
-   devs register --name <NAME> --cwd "<ABSOLUTE_PATH>" --cmd "<DEV_COMMAND>"
+   easesee register --name <NAME> --cwd "<ABSOLUTE_PATH>" --cmd "<DEV_COMMAND>"
    ```
    If duplicate name error, ask if user wants `--force` to replace.
 
 6. **Confirm with `easesee ls`**:
    ```bash
-   devs ls
+   easesee ls
    ```
    Verify the new entry appears.
 
