@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] — 2026-05-26
+
+### Added
+
+- Kill-port command (`K`): enter a port number to see which process is using it, then confirm to kill it.
+
+### Fixed
+
+- Stopping a server now kills the entire process group so child processes (e.g. vite spawned by pnpm) release their ports before the TUI updates.
+- Port discovery now uses `syscall.Getpgid` instead of `ps` for faster and more reliable process group lookup.
+- When a process listens on multiple ports (e.g. appsim), the lowest port is shown instead of whichever lsof returns first.
+- Processes running longer than 8 seconds without a port (e.g. CLI tools) now show `—` instead of `…` in the PORT column.
+
 ## [0.1.5] — 2026-05-24
 
 ### Fixed
