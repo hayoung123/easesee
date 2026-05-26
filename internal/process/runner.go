@@ -52,11 +52,21 @@ func Start(p registry.Project, logPath string) (int, error) {
 // Stop sends SIGTERM to the process, then SIGKILL after gracePeriod if still alive.
 // Signals both the process group (covers setsid-spawned trees we own) and the
 // direct PID (covers externally-started servers whose PGID differs from PID).
+// After the tracked pid dies, SIGKILL is sent to the whole process group so that
+// child processes (e.g. vite/node spawned by pnpm) release their ports immediately
+// rather than continuing graceful shutdown while the caller assumes the port is free.
 func Stop(pid int, gracePeriod time.Duration) error {
+	pgid, pgidErr := syscall.Getpgid(pid)
 	signal(pid, syscall.SIGTERM)
 	deadline := time.Now().Add(gracePeriod)
 	for time.Now().Before(deadline) {
 		if !IsAlive(pid) {
+			// Parent is dead but children (e.g. vite) may still hold the port.
+			// SIGKILL the whole group so ports are released before we return.
+			if pgidErr == nil && pgid > 1 {
+				_ = syscall.Kill(-pgid, syscall.SIGKILL)
+			}
+			time.Sleep(50 * time.Millisecond)
 			return nil
 		}
 		time.Sleep(50 * time.Millisecond)

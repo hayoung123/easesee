@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 type ProcInfo struct {
@@ -42,13 +43,12 @@ func GetProcInfo(pid int) ProcInfo {
 	return ProcInfo{PID: pid, Cwd: GetCwd(pid), Cmdline: GetCmdline(pid)}
 }
 
-// GetPgid returns the process group ID of pid via ps. Returns 0 on failure.
+// GetPgid returns the process group ID of pid via syscall. Returns 0 on failure.
 // Used to attribute pnpm/vite child listeners back to their setsid'd parent.
 func GetPgid(pid int) int {
-	out, err := exec.Command("ps", "-p", strconv.Itoa(pid), "-o", "pgid=").Output()
+	pgid, err := syscall.Getpgid(pid)
 	if err != nil {
 		return 0
 	}
-	n, _ := strconv.Atoi(strings.TrimSpace(string(out)))
-	return n
+	return pgid
 }

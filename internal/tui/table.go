@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
@@ -39,8 +40,10 @@ func rowFor(p registry.Project, m discovery.MatchResult) table.Row {
 		state = stateOn
 		if m.Port > 0 {
 			port = fmt.Sprintf("%d", m.Port)
+		} else if m.StartedAt.IsZero() || time.Since(m.StartedAt) < 8*time.Second {
+			port = "…" // starting up, port not yet bound
 		} else {
-			port = "…" // dashboard-spawned, port not yet bound
+			port = "—" // running but no port (e.g. CLI tools)
 		}
 	}
 	branch := git.Branch(p.Cwd)

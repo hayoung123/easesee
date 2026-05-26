@@ -3,13 +3,15 @@ package discovery
 import (
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/hayoung123/easesee/internal/registry"
 )
 
 type MatchResult struct {
-	PID  int
-	Port int
+	PID       int
+	Port      int
+	StartedAt time.Time // zero if not tracked; used to distinguish "starting" from "no port"
 }
 
 // Match returns name -> MatchResult for projects whose cwd contains a LISTEN PID with matching cmd tokens.
@@ -19,7 +21,11 @@ func Match(projects []registry.Project, listeners []Listener, procFn func(pid in
 	for _, l := range listeners {
 		info := procFn(l.PID)
 		for _, p := range projects {
-			if _, ok := out[p.Name]; ok {
+			if existing, ok := out[p.Name]; ok {
+				// Same PID with a smaller port: prefer lower port (user-facing).
+				if existing.PID == l.PID && l.Port < existing.Port {
+					out[p.Name] = MatchResult{PID: l.PID, Port: l.Port}
+				}
 				continue
 			}
 			if !strings.HasPrefix(info.Cwd, p.Cwd) {
