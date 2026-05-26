@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,9 +29,10 @@ type model struct {
 	st      *state.State
 	release func() error
 	err     error
-	status  string
-	log     logPane
-	form    addForm
+	status   string
+	log      logPane
+	form     addForm
+	killPort killPortForm
 }
 
 func New() *model {
@@ -56,6 +58,7 @@ func New() *model {
 	m.refresh()
 	m.log = newLog()
 	m.form = newAddForm()
+	m.killPort = newKillPortForm()
 	return m
 }
 
@@ -105,7 +108,7 @@ func (m *model) refresh() {
 					}
 				}
 			}
-			m.matches[name] = discovery.MatchResult{PID: mg.PID, Port: port}
+			m.matches[name] = discovery.MatchResult{PID: mg.PID, Port: port, StartedAt: mg.StartedAt}
 		}
 	}
 	var rows []table.Row
@@ -175,6 +178,44 @@ func (m *model) stopSelected() {
 	m.refresh()
 }
 
+func (m *model) lookupPort() {
+	port, err := strconv.Atoi(strings.TrimSpace(m.killPort.input.Value()))
+	if err != nil || port <= 0 {
+		m.status = "invalid port: " + m.killPort.input.Value()
+		m.killPort.reset()
+		return
+	}
+	listeners, err := discovery.ListListeners()
+	if err != nil {
+		m.status = "discovery error: " + err.Error()
+		m.killPort.reset()
+		return
+	}
+	var targets []killTarget
+	for _, l := range listeners {
+		if l.Port == port {
+			info := discovery.GetProcInfo(l.PID)
+			targets = append(targets, killTarget{PID: l.PID, Cmd: info.Cmdline})
+		}
+	}
+	if len(targets) == 0 {
+		m.status = fmt.Sprintf("port %d is not in use", port)
+		m.killPort.reset()
+		return
+	}
+	m.killPort.targets = targets
+	m.killPort.confirming = true
+}
+
+func (m *model) confirmKillPort() {
+	for _, t := range m.killPort.targets {
+		_ = process.Stop(t.PID, 3*time.Second)
+	}
+	m.status = fmt.Sprintf("killed port (pid=%d)", m.killPort.targets[0].PID)
+	m.killPort.reset()
+	m.refresh()
+}
+
 func (m *model) restartSelected() {
 	m.stopSelected()
 	time.Sleep(200 * time.Millisecond)
@@ -214,6 +255,31 @@ func tickCmd() tea.Cmd {
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// If killPort form is visible, route keys to it first.
+	if m.killPort.visible {
+		if k, ok := msg.(tea.KeyMsg); ok {
+			if m.killPort.confirming {
+				switch k.String() {
+				case "y", "enter":
+					m.confirmKillPort()
+				case "n", "esc":
+					m.killPort.reset()
+				}
+				return m, nil
+			}
+			switch k.String() {
+			case "esc":
+				m.killPort.reset()
+				return m, nil
+			case "enter":
+				m.lookupPort()
+				return m, nil
+			}
+		}
+		cmd := m.killPort.Update(msg)
+		return m, cmd
+	}
+
 	// If form is visible, route keys to form first.
 	if m.form.visible {
 		if k, ok := msg.(tea.KeyMsg); ok {
@@ -283,6 +349,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Add):
 			m.form.visible = true
 			return m, nil
+		case key.Matches(msg, m.keys.KillPort):
+			m.killPort.visible = true
+			m.killPort.input.Focus()
+			return m, nil
 		case key.Matches(msg, m.keys.Edit):
 			return m, openEditor(m.paths.RegistryFile)
 		}
@@ -310,6 +380,10 @@ func (m *model) View() string {
 		b.WriteString(m.form.View())
 		b.WriteString("\n\n")
 	}
+	if m.killPort.visible {
+		b.WriteString(m.killPort.View())
+		b.WriteString("\n\n")
+	}
 	b.WriteString(m.tbl.View())
 	b.WriteString("\n")
 	if m.log.visible {
@@ -323,7 +397,7 @@ func (m *model) View() string {
 		b.WriteString(help.Render(m.status))
 		b.WriteString("\n")
 	}
-	b.WriteString(help.Render(" enter:toggle  s:start  x:stop  r:restart  l:log  a:add  e:edit  R:refresh  q:quit  Q:quit+kill "))
+	b.WriteString(help.Render(" enter:toggle  s:start  x:stop  r:restart  l:log  a:add  e:edit  K:kill-port  R:refresh  q:quit  Q:quit+kill "))
 	if m.err != nil {
 		b.WriteString("\n")
 		b.WriteString(fmt.Sprintf("ERROR: %v", m.err))

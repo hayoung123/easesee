@@ -1,6 +1,9 @@
 package tui
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -55,4 +58,52 @@ func (f addForm) View() string {
 		" cwd:  " + f.inputs[1].View() + "\n" +
 		" cmd:  " + f.inputs[2].View() + "\n" +
 		" tab:next  enter:save  esc:cancel"
+}
+
+type killTarget struct {
+	PID int
+	Cmd string
+}
+
+type killPortForm struct {
+	visible    bool
+	input      textinput.Model
+	confirming bool
+	targets    []killTarget
+}
+
+func newKillPortForm() killPortForm {
+	ti := textinput.New()
+	ti.Placeholder = "port (e.g. 5173)"
+	ti.Width = 20
+	return killPortForm{input: ti}
+}
+
+func (f *killPortForm) reset() {
+	f.input.SetValue("")
+	f.input.Blur()
+	f.confirming = false
+	f.targets = nil
+	f.visible = false
+}
+
+func (f *killPortForm) Update(msg tea.Msg) tea.Cmd {
+	var cmd tea.Cmd
+	f.input, cmd = f.input.Update(msg)
+	return cmd
+}
+
+func (f killPortForm) View() string {
+	if f.confirming {
+		var b strings.Builder
+		b.WriteString("─ Kill port ─\n")
+		for _, t := range f.targets {
+			b.WriteString(fmt.Sprintf(" pid=%-6d  %s\n", t.PID, t.Cmd))
+		}
+		b.WriteString("\n Kill? y:OK  n:cancel")
+		return b.String()
+	}
+	return "─ Kill port ─\n" +
+		" port: " + f.input.View() + "\n" +
+		" enter:confirm  esc:cancel"
 }
