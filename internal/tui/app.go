@@ -374,7 +374,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *model) View() string {
 	var b strings.Builder
-	b.WriteString(header.Render(" easesee "))
+	b.WriteString(appHeader.Render("easesee"))
 	b.WriteString("\n\n")
 	if m.form.visible {
 		b.WriteString(m.form.View())
@@ -388,16 +388,16 @@ func (m *model) View() string {
 	b.WriteString("\n")
 	if m.log.visible {
 		b.WriteString("\n")
-		b.WriteString(header.Render(" log "))
+		b.WriteString(header.Render("log"))
 		b.WriteString("\n")
 		b.WriteString(m.log.vp.View())
 		b.WriteString("\n")
 	}
 	if m.status != "" {
-		b.WriteString(help.Render(m.status))
+		b.WriteString(statusStyle.Render("  "+m.status))
 		b.WriteString("\n")
 	}
-	b.WriteString(help.Render(" enter:toggle  s:start  x:stop  r:restart  l:log  a:add  e:edit  K:kill-port  R:refresh  q:quit  Q:quit+kill "))
+	b.WriteString(help.Render("  enter toggle  s start  x stop  r restart  l log  a add  K kill-port  q quit  Q quit+kill"))
 	if m.err != nil {
 		b.WriteString("\n")
 		b.WriteString(fmt.Sprintf("ERROR: %v", m.err))

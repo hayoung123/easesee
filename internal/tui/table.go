@@ -26,8 +26,16 @@ func newTable() table.Model {
 		table.WithFocused(true),
 	)
 	s := table.DefaultStyles()
-	s.Header = s.Header.Bold(true).Foreground(lipgloss.Color("#3b82f6"))
-	s.Selected = s.Selected.Foreground(lipgloss.Color("#fff")).Background(lipgloss.Color("#1e3a8a"))
+	s.Header = s.Header.
+		Bold(false).
+		Foreground(lipgloss.Color("#6f6e69")).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("#e6e4d9")).
+		BorderBottom(true)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("#100f0f")).
+		Background(lipgloss.Color("#e6e4d9")).
+		Bold(false)
 	t.SetStyles(s)
 	return t
 }
