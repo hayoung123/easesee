@@ -63,6 +63,12 @@ func cmdTokenOverlap(registered, live string) bool {
 		if liveSet[t] {
 			return true
 		}
+		// Scoped filter tokens (`@app/direct-farm`) carry the distinctive name
+		// as their last path segment, while the live vite path exposes only the
+		// bare segment (`direct-farm`). Reconcile via the registered basename.
+		if base := filepath.Base(t); base != t && liveSet[base] {
+			return true
+		}
 	}
 	if hasDistinctive {
 		// Registered cmd had distinctive tokens but none matched: definitive no.
@@ -81,7 +87,10 @@ func cmdTokenOverlap(registered, live string) bool {
 }
 
 // tokenize splits a command line into whole-word tokens, also adding the
-// basename of any path-shaped token (so `/usr/bin/pnpm` matches `pnpm`).
+// basename of any path-shaped token (so `/usr/bin/pnpm` matches `pnpm`) and
+// each path segment (so a vite child whose cmdline only carries the project
+// name inside its path — `…/apps/order-history/…/vite.js` — still matches
+// `order-history` as a whole token, without regressing to substring matching).
 func tokenize(cmdline string) map[string]bool {
 	out := map[string]bool{}
 	for _, w := range strings.Fields(cmdline) {
@@ -91,6 +100,13 @@ func tokenize(cmdline string) map[string]bool {
 		out[w] = true
 		if base := filepath.Base(w); base != w {
 			out[base] = true
+		}
+		if strings.Contains(w, "/") {
+			for _, seg := range strings.Split(w, "/") {
+				if seg != "" {
+					out[seg] = true
+				}
+			}
 		}
 	}
 	return out
