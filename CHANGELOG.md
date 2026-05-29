@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] — 2026-05-29
+
+### Fixed
+
+- Dev servers started outside the dashboard (or whose tracked PID went stale) now show as ON with their real port. The matcher attributes child listeners — e.g. vite spawned by pnpm, whose command line carries the project name only inside its path — by matching path segments, including scoped pnpm filters (`@app/foo`).
+
+### Changed
+
+- Restyled the dashboard with a neutral palette: muted header/help/status colors, an underlined table header, and tidied key bar and state labels.
+
 ## [0.1.6] — 2026-05-26
 
 ### Added
